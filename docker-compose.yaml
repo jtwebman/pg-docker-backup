@@ -1,0 +1,41 @@
+services:
+  db-backup:
+    build:
+      context: .
+    environment:
+      S3_APPLICATION_KEY_ID: ${S3_APPLICATION_KEY_ID}
+      S3_SECRET_ACCESS_KEY: ${S3_SECRET_ACCESS_KEY}
+      S3_BUCKET_NAME: ${S3_BUCKET_NAME}
+      S3_REGION: ${S3_REGION}
+      S3_API_URL: ${S3_API_URL}
+      OBJECT_KEY_PREFIX: "full/db-backup-prefix-"
+      CRON_SCHEDULE: "0 8 * * *"
+      DB_HOST: db
+      DB_USER: root-user
+      DB_PASSWORD: ${DB_PASSWORD}
+    tty: true
+  db:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_DB: postgres
+      POSTGRES_USER: root-user
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      PGPASSWORD: ${DB_PASSWORD}
+    healthcheck:
+      test: ["CMD", "pg_isready"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    ports:
+      - "5432:5432"
+    tty: true
+    volumes:
+      - ./conf/simple-posgres.conf:/etc/postgresql/postgresql.conf
+      - db-data:/var/lib/postgresql/data
+      - db-logs:/var/lib/postgresql/logs
+      - db-pitr:/var/lib/postgresql/pitr
+
+volumes:
+  db-data:
+  db-logs:
+  db-pitr:
