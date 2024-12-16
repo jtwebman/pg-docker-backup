@@ -24,12 +24,12 @@ jobs:
         id: set-tags
         run: |
           # Initialize the TAGS variable with default tags
-          TAGS="jtwebman/pg-docker-backup:latest\\njtwebman/pg-docker-backup:${{ github.sha }}"
+          TAGS="jtwebman/pg-docker-backup:latest\njtwebman/pg-docker-backup:${{ github.sha }}"
 
           # Read each version from the VERSIONS file and append it as a tag
           while IFS= read -r version; do
             if [ -n "$version" ]; then
-              TAGS="$TAGS\\njtwebman/pg-docker-backup:$version"
+              TAGS="$TAGS\njtwebman/pg-docker-backup:$version"
             fi
           done < VERSIONS
 
