@@ -16,8 +16,8 @@ Github Repo: https://github.com/jtwebman/pg-docker-backup
 
 ### Environment Varables Supported
 
-- S3_APPLICATION_KEY_ID: { Compatible S3 Key Id (Can by a secret file) }
-- S3_SECRET_ACCESS_KEY: { Compatible S3 Secret Key (Can by a secret file) }
+- S3_APPLICATION_KEY_ID: { Compatible S3 Key Id (Can be a secret file) }
+- S3_SECRET_ACCESS_KEY: { Compatible S3 Secret Key (Can be a secret file) }
 - S3_BUCKET_NAME: { Name of the S3 bucket }
 - S3_REGION: { Compatible S3 Region }
 - S3_API_URL: { Compatible S3 Endpoint URL }
@@ -26,7 +26,7 @@ Github Repo: https://github.com/jtwebman/pg-docker-backup
 - DB_PORT: { The db port defaults to 5432 }
 - DB_NAME: { The db name to initially connect too, defaults to postgres }
 - DB_USER: { The db user to initially connect with, defaults to postgres }
-- DB_PASSWORD: { The db users password (Can by a secret file) }
+- DB_PASSWORD: { The db users password (Can be a secret file) }
 - CRON_SCHEDULE: { The standard cron schedule pattern: \* \* \* \* \* }
 - COMPRESSOR_CMD: { The cli tool to compress the backup. (gzip or xz) Defaults to gzip but xz is installed }
 - OBJECT_KEY_SUFFIX: { Defaults to `.sql.gz` but good to change if you change the compressor tool }
