@@ -1,11 +1,14 @@
 name: pipeline
+
 on:
+  schedule:
+    - cron: "0 0 * * 0" # Every Sunday at midnight UTC
   push:
     branches:
-      - "main"
-
-permissions:
-  packages: write
+      - "**"
+    tags:
+      - "v*.*.*"
+  pull_request:
 
 jobs:
   build-and-push-image:
@@ -20,28 +23,19 @@ jobs:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_ACCESS_TOKEN }}
 
-      - name: Read versions and set tags
-        id: set-tags
-        run: |
-          # Initialize the TAGS variable with default tags
-          TAGS="jtwebman/pg-docker-backup:latest\njtwebman/pg-docker-backup:${{ github.sha }}"
-
-          # Read each version from the VERSIONS file and append it as a tag
-          while IFS= read -r version; do
-            if [ -n "$version" ]; then
-              TAGS="$TAGS\njtwebman/pg-docker-backup:$version"
-            fi
-          done < VERSIONS
-
-          # Save the tags as a multi-line string output for the next step
-          echo "tags=$TAGS" >> $GITHUB_ENV
-
       - name: Build and push Docker Image
         uses: docker/build-push-action@v6
         with:
           context: .
           push: true
-          tags: ${{ env.tags }}
+          tags: |
+            type=schedule
+            type=ref,event=branch
+            type=ref,event=pr
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
+            type=semver,pattern={{major}}
+            type=sha
 
       - name: Docker Hub Description
         uses: peter-evans/dockerhub-description@v4
