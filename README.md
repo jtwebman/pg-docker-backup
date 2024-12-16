@@ -10,6 +10,8 @@ I built this because it is dumb that managed DB's cost 5 to 10x the CPU and Memo
 This is a work in progress but I am using it in production now! I plan on updating this to also support PITR
 backups using a docker volume
 
+Github Repo: https://github.com/jtwebman/pg-docker-backup
+
 ## Setup
 
 ### Environment Varables Supported
@@ -32,28 +34,23 @@ backups using a docker volume
 
 ### How It works
 
-We start crond -f wit hthe backup command. So it will output the cron logs to standard out.
+We start crond -f with the backup command. So it will output the cron logs to standard out.
 
 This first version takes the full backups of the whole cluster based on the cron schedule. It
 runs `pg_dumpall -c -w` with the `DB_` environment varables to take a backup. It
 pipes the backup to `gzip` and then pipes it to `aws s3 cp` command to copy the file up.
 
 There is a 50 GB limit the way it is written so test the bachup size ahead of time by running
-`pg_dumpall | xz > dump.sql.gz` to see the gzip size and add `--expected-size` to the command if
+`pg_dumpall | gzip > dump.sql.gz` to see the gzip size and add `--expected-size` to the command if
 it is over.
 
 ### xz over gzip
 
 If you use xz over gzip it does make much smaller files but takes more cpu and memory to run. You can limit
 xz memory by setting a max like `xz --memlimit-compress=200MiB` as well as it is muti-threaded so you can limit
-the cpu by forcing a single thread like this `xz -T1`. Both of those settings will jsut mean it takes longer to backup.
-You can make it take less cpu, memory, and time by just changing the compression ration with values from 0 to 9 like
-`xz -0` for the dastest and `xz -9` the slowest but most compression.
-
-### Test
-
-There is a docker-compose.yaml file showing how to set it up. You can also use it to test if you wanted or make your own image.
-Add a `.env` with the environment varables you want to keep a secret and run `source .env && docker compose up -d`.
+the cpu by forcing a single thread like this `xz -T1`. Both of those settings will just mean it takes longer to backup.
+You can make it take less cpu, memory, and time by just changing the compression level with values from 0 to 9 like
+`xz -0` for the fastest and biggest and `xz -9` the slowest and smallest.
 
 ### Example Docker Compose
 
@@ -100,3 +97,8 @@ volumes:
   db-logs:
   db-pitr:
 ```
+
+### Test
+
+There is a docker-compose.yaml file showing how to set it up in the github repo. You can also use it to test if you wanted or make your own image.
+Add a `.env` with the environment varables you want to keep a secret and run `source .env && docker compose up -d`.
