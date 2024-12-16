@@ -20,6 +20,20 @@ jobs:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_ACCESS_TOKEN }}
 
+      - name: Read versions and set tags
+        id: set-tags
+        run: |
+          # Read the VERSIONS file
+          TAGS=""
+          while IFS= read -r version; do
+            if [ -n "$version" ]; then
+              TAGS+="\njtwebman/pg-docker-backup:$version"
+            fi
+          done < VERSIONS
+
+          # Export the tags as an environment variable
+          echo "TAGS=$TAGS" >> $GITHUB_ENV
+
       - name: Build and push Docker Image
         uses: docker/build-push-action@v6
         with:
@@ -28,6 +42,7 @@ jobs:
           tags: |
             jtwebman/pg-docker-backup:latest
             jtwebman/pg-docker-backup:${{ github.sha }}
+            ${{ steps.set-tags.outputs.TAGS }}
 
       - name: Docker Hub Description
         uses: peter-evans/dockerhub-description@v4
