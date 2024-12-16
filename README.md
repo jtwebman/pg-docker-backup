@@ -10,7 +10,9 @@ I built this because it is dumb that managed DB's cost 5 to 10x the CPU and Memo
 This is a work in progress but I am using it in production now! I plan on updating this to also support PITR
 backups using a docker volume
 
-## Environment Varables All Required
+## Setup
+
+### Environment Varables Supported
 
 - S3_APPLICATION_KEY_ID: { Compatible S3 Key Id (Can by a secret file) }
 - S3_SECRET_ACCESS_KEY: { Compatible S3 Secret Key (Can by a secret file) }
@@ -52,3 +54,49 @@ You can make it take less cpu, memory, and time by just changing the compression
 
 There is a docker-compose.yaml file showing how to set it up. You can also use it to test if you wanted or make your own image.
 Add a `.env` with the environment varables you want to keep a secret and run `source .env && docker compose up -d`.
+
+### Example Docker Compose
+
+This runs backup daily at 8 am UTC. The files are put in the bucket `/full/db-backup-prefix-YYYYmmdd-HHMMSS.sql.gz` and are `gzipped`.
+
+```yaml
+services:
+  db-backup:
+    image: jtwebman/pg-docker-backup:latest
+    environment:
+      S3_APPLICATION_KEY_ID: ${S3_APPLICATION_KEY_ID}
+      S3_SECRET_ACCESS_KEY: ${S3_SECRET_ACCESS_KEY}
+      S3_BUCKET_NAME: ${S3_BUCKET_NAME}
+      S3_REGION: ${S3_REGION}
+      S3_API_URL: ${S3_API_URL}
+      OBJECT_KEY_PREFIX: "full/db-backup-prefix-"
+      CRON_SCHEDULE: "0 8 * * *"
+      DB_HOST: db
+      DB_USER: root-user
+      DB_PASSWORD: ${DB_PASSWORD}
+    tty: true
+  db:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_DB: postgres
+      POSTGRES_USER: root-user
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      PGPASSWORD: ${DB_PASSWORD}
+    healthcheck:
+      test: ["CMD", "pg_isready"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    ports:
+      - "5432:5432"
+    tty: true
+    volumes:
+      - db-data:/var/lib/postgresql/data
+      - db-logs:/var/lib/postgresql/logs
+      - db-pitr:/var/lib/postgresql/pitr
+
+volumes:
+  db-data:
+  db-logs:
+  db-pitr:
+```
