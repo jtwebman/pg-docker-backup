@@ -8,11 +8,12 @@ services:
       S3_BUCKET_NAME: ${S3_BUCKET_NAME}
       S3_REGION: ${S3_REGION}
       S3_API_URL: ${S3_API_URL}
-      OBJECT_KEY_PREFIX: "full/db-backup-prefix-"
-      CRON_SCHEDULE: "0 8 * * *"
+      OBJECT_KEY_PREFIX: "full/db-test-"
+      CRON_SCHEDULE: "0 * * * *"
       DB_HOST: db
       DB_USER: root-user
       DB_PASSWORD: ${DB_PASSWORD}
+      COMPRESSOR_CMD: "xz -9"
     tty: true
   db:
     image: postgres:17-alpine
@@ -22,7 +23,7 @@ services:
       POSTGRES_PASSWORD: ${DB_PASSWORD}
       PGPASSWORD: ${DB_PASSWORD}
     healthcheck:
-      test: ["CMD", "pg_isready"]
+      test: ["CMD", "pg_isready", "-d", "postgres", "-U", "root-user"]
       interval: 10s
       timeout: 5s
       retries: 5
